@@ -1,7 +1,8 @@
-# Game Programming on iOS with Cocos2d
+# cocos2d Metroid Runner
 
-This is the sample app presented at DevTeach in Vancouver, May 2012.  It uses cocos2d to create an endless runner game.
+This is the sample app presented at DevTeach in Vancouver, May 2012.  It uses cocos2d to create an endless runner game for iOS.
 
+![Game in Action](http://cl.ly/3Y3c1k3A2U0A2n0Q2e1v/cocos2d-1.png)
 
 ## Running the game
 
