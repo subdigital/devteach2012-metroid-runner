@@ -117,6 +117,26 @@ enum {
     [self addChild:spriteSheet z:ZIndexPlayer];
 }
 
+- (void)setupJumpAnimation {
+    jumpAnimation = [[CCAnimation animation] retain];
+    const int NUM_FRAMES = 8;
+    const int WIDTH = 36;
+    const int HEIGHT = 45;
+    const int Y = 240;
+    const int Frames[] = {0, 36, 72, 108, 144, 177, 212, 254};
+    for (int i=0; i < NUM_FRAMES; i++) {
+        int x = Frames[i];
+        if (i > 3) {
+            x -= 2;
+        } else if (i >= 6) {
+            x += 9;
+        }
+        CCSpriteFrame *frame = [CCSpriteFrame frameWithTexture:spriteSheet.texture rect:CGRectMake(x, Y, WIDTH, HEIGHT)];
+        [jumpAnimation addFrame:frame];
+    }
+    jumpAnimation.delay = 0.04;
+}
+
 // HelloWorldLayer.m
 - (id)init {
     self = [super init];
@@ -125,14 +145,36 @@ enum {
         [self setupGround];
         [self setupPlayer];
         
+        [self setupJumpAnimation];
         [self setupRunAnimation];
         [self startRunning];
         
         //self.scale = 0.2;
         
         [self schedule:@selector(update:) interval:1/60.0];
+        [self registerWithTouchDispatcher];
     }
     return self;
+}
+
+- (void)jump {
+    CCAnimate *animateJump = [CCAnimate actionWithAnimation:jumpAnimation];
+    CCRepeatForever *animateJumpRepeatedly = [CCRepeatForever actionWithAction:animateJump];
+    [player runAction:animateJumpRepeatedly];
+    
+    CCJumpBy *jump = [CCJumpBy actionWithDuration:0.8
+                                         position:ccp(0, 0)
+                                           height:180
+                                            jumps:1];
+    
+    CCCallFunc *startRunningAgain = [CCCallFunc actionWithTarget:self 
+                                                        selector:@selector(startRunning)];
+    CCSequence *sequence = [CCSequence actionOne:jump two:startRunningAgain];
+    [player runAction:sequence];
+}
+
+- (void)ccTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self jump];
 }
 
 - (void)checkToRecycleGround {
