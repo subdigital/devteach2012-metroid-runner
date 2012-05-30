@@ -62,15 +62,39 @@ enum {
     [self addChild:bg z:ZIndexSpace];
 }
 
-- (void)setupGround {
-    CCSprite *ground = [CCSprite spriteWithFile:@"ground.png"];
-    ground.scale = 0.8;
+- (void)appendGround:(CCSprite *)ground {
+    if (!ground) {
+        ground = [CCSprite spriteWithFile:@"ground.png"];
+        ground.scale = 0.8;
+    }
     
-    int x = ground.textureRect.size.width * ground.scale / 2;
+    if (!groundSprites) {
+        groundSprites = [[NSMutableArray alloc] init];
+    }
+    
+    int x;
+    if ([groundSprites count] == 0) {
+        // left edge
+        x = ground.textureRect.size.width * ground.scale / 2;
+    } else {
+        CCSprite *lastGround = [groundSprites lastObject];
+        x = lastGround.position.x + lastGround.textureRect.size.width * lastGround.scale;
+    }
+    
     int y = ground.textureRect.size.height * ground.scale / 2;
     ground.position = ccp(x, y);
+
+    [groundSprites addObject:ground];
     
-    [self addChild:ground z:ZIndexGround];            
+    if (!ground.parent) {
+        [self addChild:ground z:ZIndexGround];                    
+    }
+}
+
+- (void)setupGround {
+    [self appendGround:nil];
+    [self appendGround:nil];
+    [self appendGround:nil];
 }
 
 - (void)setupPlayer {
@@ -103,8 +127,30 @@ enum {
         
         [self setupRunAnimation];
         [self startRunning];
+        
+        //self.scale = 0.2;
+        
+        [self schedule:@selector(update:) interval:1/60.0];
     }
     return self;
+}
+
+- (void)checkToRecycleGround {
+    CCSprite *ground = [groundSprites objectAtIndex:0];
+    if (ground.position.x < -1 * ground.textureRect.size.width * ground.scale / 2) {
+        [groundSprites removeObject:ground];
+        [self appendGround:ground];
+    }
+}
+
+- (void)update:(ccTime)delta {
+    const CGFloat speed = 500.0f;
+    CGFloat deltaX = - speed * delta;
+    for (CCSprite *ground in groundSprites) {
+        ground.position = ccpAdd(ground.position, ccp(deltaX, 0));
+    }
+    
+    [self checkToRecycleGround];
 }
 
 - (void)startRunning {
@@ -122,6 +168,7 @@ enum {
 
 - (void)dealloc {
     [runAnimation release];
+    [groundSprites release];
     [super dealloc];
 }
 

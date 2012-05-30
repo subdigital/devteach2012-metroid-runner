@@ -22,6 +22,7 @@ enum {
     CCSpriteBatchNode *spriteSheet;
     CCSprite *player;
     CCAnimation *runAnimation;
+    NSMutableArray *groundSprites;
 }
     
 // returns a CCScene that contains the HelloWorldLayer as the only child
